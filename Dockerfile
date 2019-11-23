@@ -1,34 +1,24 @@
-# Multistage build
-# Build container
-FROM elixir:1.8.1-alpine as build
+FROM bitwalker/alpine-elixir-phoenix:latest
 
-RUN mix local.hex --force
-RUN mix local.rebar --force
+# Set mix env and ports
+ENV MIX_ENV=prod \
+    PORT=$PORT
 
-# create app folder
-RUN mkdir /app
-COPY ./app /app
-WORKDIR /app
+# Cache elixir deps
+ADD mix.exs mix.lock ./
+RUN mix do deps.get, deps.compile
 
-# install dependencies
-RUN mix deps.get
-RUN MIX_ENV=prod mix release --env=prod
+# Same with npm deps
+ADD assets/package.json assets/
+RUN cd assets && \
+    npm install
 
-# Deployable container
-FROM alpine:3.9
-RUN apk --no-cache add bash curl
-WORKDIR /app
-COPY --from=build /app/_build/prod/rel/app/releases/0.1.0/app.tar.gz .
+ADD . .
 
-RUN tar xzfv app.tar.gz
-WORKDIR ./bin
+# Run frontend build, compile, and digest assets
+RUN cd assets/ && \
+    npm run deploy && \
+    cd - && \
+    mix do compile, phx.digest
 
-ARG PORT
-ARG HOSTNAME
-ARG PAYMENT_KEY
-ENV PORT=${PORT}
-ENV HOSTNAME=${HOSTNAME}
-ENV PAYMENT_KEY=${PAYMENT_KEY}
-EXPOSE ${PORT}
-
-CMD ["./app", "foreground"]
+CMD ["mix", "phx.server"]

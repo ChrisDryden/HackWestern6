@@ -7,7 +7,6 @@ steps:
     env:
     - 'HOSTNAME=${_HOSTNAME}'
     - 'PORT=${_PORT}'
-    - 'PAYMENT_KEY=${_PAYMENT_KEY}'
-    args: ['beta', 'run', 'deploy', '--set-env-vars=PAYMENT_KEY=${_PAYMENT_KEY},HOSTNAME=${_HOSTNAME}', '--region', 'us-central1', '--allow-unauthenticated', '--image', 'gcr.io/$PROJECT_ID/HackWestern6', 'HackWestern6']
+    args: ['beta', 'run', 'deploy', '--set-env-vars=HOSTNAME=${_HOSTNAME}', '--region', 'us-central1', '--allow-unauthenticated', '--image', 'gcr.io/$PROJECT_ID/HackWestern6', 'HackWestern6']
 images:
   - 'gcr.io/$PROJECT_ID/HackWestern6'
